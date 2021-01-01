@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+void* aux_vector_extract_data(struct aux_vector *v) {
+    void *data = v->av_memory;
+    memset(v, 0, sizeof(struct aux_vector));
+    return data;
+}
+
 static void aux_vector_reallocate(struct aux_vector *v, size_t capacity) {
     if (v->av_capacity != capacity) {
         void *new_memory = realloc(v->av_memory, capacity * v->av_element_size);

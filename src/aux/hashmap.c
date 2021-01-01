@@ -19,6 +19,10 @@ static bool aux_hashmap_compare_key(aux_hashmap *h, aux_hashmap_ptr key, aux_has
     return h->ah_methods->ahm_compare_key ? h->ah_methods->ahm_compare_key(key, other) == 0 : key == other;
 }
 
+static aux_hash_value aux_hashmap_calc_hash(aux_hashmap *h, aux_hashmap_ptr ptr) {
+    return h->ah_methods->ahm_hash_key ? h->ah_methods->ahm_hash_key(ptr) : ptr;
+}
+
 void aux_hashmap_init(aux_hashmap *h, aux_hashmap_methods const *methods) {
     h->ah_capacity = 0;
     h->ah_load = 0;
@@ -42,7 +46,7 @@ void aux_hashmap_release (aux_hashmap *h) {
 }
 
 static bool aux_hashmap_insert (aux_hashmap *h, aux_hashmap_ptr key, aux_hashmap_ptr value, aux_hashmap_ptr *old_value) {
-    const size_t hash = h->ah_methods->ahm_hash_key ? h->ah_methods->ahm_hash_key(key) : key;
+    const aux_hash_value hash = aux_hashmap_calc_hash(h, key);
     assert(h->ah_capacity > 0);
     assert(h->ah_buckets != NULL);
 
@@ -114,7 +118,7 @@ bool aux_hashmap_get (aux_hashmap *h, aux_hashmap_ptr key, aux_hashmap_ptr *out)
     bool found_empty_bucket = false;
     size_t empty_bucket_idx;
 
-    const size_t hash = h->ah_methods->ahm_hash_key ? h->ah_methods->ahm_hash_key(key) : key;
+    const aux_hash_value hash = aux_hashmap_calc_hash(h, key);
     assert(h->ah_capacity > 0);
     assert(h->ah_buckets != NULL);
 
@@ -158,7 +162,7 @@ bool aux_hashmap_delete(aux_hashmap *h, aux_hashmap_ptr key, aux_hashmap_ptr *ol
         return false;
     }
 
-    const size_t hash = h->ah_methods->ahm_hash_key ? h->ah_methods->ahm_hash_key(key) : key;
+    const aux_hash_value hash = aux_hashmap_calc_hash(h, key);
 
     for (size_t i = 0; i < h->ah_capacity; i++) {
         size_t idx = (hash + i) % h->ah_capacity;
